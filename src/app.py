@@ -2,13 +2,11 @@ from manifest import Manifest
 from updater import Updater
 
 
-manifest = Manifest()
-updater = Updater()
-
-
 class App:
     def __init__(self):
-        pass
+        self.manifest = Manifest()
+        self.updater = Updater()
     
     def update_mods(self):
         ...
+    

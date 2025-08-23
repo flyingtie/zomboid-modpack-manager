@@ -41,5 +41,15 @@ class Manifest:
 
         logger.success(f"manifest.json создан → {self.output_file}")
        
+    # def 
+    #            async with aiohttp.ClientSession() as session:
+    #         async with session.get(settings) as resp:
+    #             manifest = await resp.json()
+
+    #         tasks = []
+    #         for fname, meta in manifest["mods"].items():
+    #             tasks.append(self.process_mod(session, fname, meta))
+
+    #         await asyncio.gather(*tasks)
 
 
