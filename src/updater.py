@@ -1,20 +1,22 @@
 import os
 import hashlib
+import checksumdir
 import requests
 import pathlib
-import tomllib
+import json
 
 from loguru import logger
 from pathlib import Path
 from pydantic import AnyUrl
 
 from src.models import Manifest, LocalMod, Mod
-from src.config_loader import settings
+from src.config_loader import settings, CONFIG_PATH
 
 
 class Updater:
     def __init__(self):
         self.request_settings()
+        self.save_config()
         
     def run(self):
         pass
@@ -40,20 +42,24 @@ class Updater:
                         continue
                     info_dict[key.strip()] = value.strip()
             
-            self.sha256_dir(sub_dir)
+            mod_hash = checksumdir.dirhash(sub_dir, hashfunc="sha256")
             
-            mod = LocalMod(**info_dict, path=sub_dir, mod_hash=...)
+            mod = LocalMod(**info_dict, path=sub_dir, mod_hash=mod_hash)
             
-        mods.append(mod)
-    
-    @staticmethod
-    def sha256_dir(path: Path):
-        pass
-    
-    @staticmethod
-    def __sha256_file(file):
-        pass
+            mods.append(mod)
         
+        return mods
+        
+    
+        
+    def download_mods(self):
+        pass
+    
+    @staticmethod
+    def save_config():
+        with CONFIG_PATH.open("w") as file:
+            file.write(settings.model_dump_json(indent=4))
+    
     @staticmethod
     def request_settings():
         if not settings.manifest_url:
@@ -66,4 +72,3 @@ class Updater:
             settings.mods_folder = input("Path to mods: ")
             if not os.path.exists(settings.mods_folder):
                 raise ValueError("Invalid path")
-

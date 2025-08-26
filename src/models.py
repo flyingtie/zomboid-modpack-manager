@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, AnyUrl, Field
 from pathlib import Path
-from typing import Iterable
+from typing import Sequence
 
 
 class BaseMod(BaseModel):
@@ -17,4 +17,4 @@ class Mod(BaseMod):
     mod_url: AnyUrl
 
 class Manifest(BaseModel):
-    mods: Iterable[Mod]
+    mods: Sequence[Mod]

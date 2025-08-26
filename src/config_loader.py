@@ -1,11 +1,16 @@
-from .config import Settings, CONFIG_PATH
+from platformdirs import user_data_dir
+from .config import Settings
+from pathlib import Path
 
-import tomllib
+import json
 
+
+DATA_DIR = Path(user_data_dir("ZomboidModsUpdater"))
+CONFIG_PATH = DATA_DIR / "config.json"
 
 if CONFIG_PATH.exists():
-    with CONFIG_PATH.open("rb", encoding="utf-8") as f:
-        data = tomllib.load(f)
+    with CONFIG_PATH.open("rb") as file:
+        data = json.load(file.read())
     settings = Settings.model_validate(data)
 else:
     settings = Settings()
