@@ -14,12 +14,10 @@ from src.config_loader import settings, CONFIG_PATH
 
 
 class Updater:
-    def __init__(self):
+ 
+    def run(self):
         self.request_settings()
         self.save_config()
-        
-    def run(self):
-        pass
         
     def get_manifest(self) -> Manifest:
         with requests.Session() as session:
