@@ -1,11 +1,14 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from platformdirs import user_data_dir
+from pydantic import AnyUrl, BaseModel, ConfigDict
+from pathlib import Path
+from typing import Optional
 
 
-class Settings(BaseSettings): 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, strict=True)
+DATA_DIR = Path(user_data_dir("ZomboidModsUpdater"))
+CONFIG_PATH = DATA_DIR / "config.toml"
 
-    manifest_url: str
-    chunk_size: int = 8192
+class Settings(BaseModel):
+    model_config = ConfigDict(extra="ignore", validate_assignment=True)
     
-        
-settings = Settings()
+    manifest_url: Optional[AnyUrl] = None
+    mods_folder: Optional[Path] = None

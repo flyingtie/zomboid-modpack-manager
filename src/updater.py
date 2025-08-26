@@ -1,59 +1,69 @@
 import os
 import hashlib
-import asyncio
-import aiohttp
+import requests
+import pathlib
+import tomllib
 
 from loguru import logger
+from pathlib import Path
+from pydantic import AnyUrl
 
-from config import settings
+from src.models import Manifest, LocalMod, Mod
+from src.config_loader import settings
 
 
 class Updater:
     def __init__(self):
+        self.request_settings()
+        
+    def run(self):
         pass
-
-    def sha256_file(self, path: str) -> str:
-        h = hashlib.sha256()
-        with open(path, "rb") as f:
-            for chunk in iter(lambda: f.read(settings.chunk_size), b""):
-                h.update(chunk)
-        return h.hexdigest()
-
-    async def download_file(self, session: aiohttp.ClientSession, url: str, path: str):
-        async with session.get(url) as resp:
-            resp.raise_for_status()
-            total = int(resp.headers.get('Content-Length', 0))
-            downloaded = 0
-
-            with open(path, "wb") as f:
-                async for chunk in resp.content.iter_chunked(settings.chunk_size):
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    logger.debug(f"{os.path.basename(path)}: {downloaded}/{total} байт")
-
-        logger.success(f"{os.path.basename(path)} скачан полностью!")
-
-    async def process_mod(self, session: aiohttp.ClientSession, fname: str, meta: dict):
-        url = meta["url"]
-        expected_hash = meta["hash"]
-        path = os.path.join(, fname)
-
-        need_download = True
-        if os.path.exists(path):
-            local_hash = self.sha256_file(path)
-            if local_hash == expected_hash:
-                logger.info(f"{fname} уже актуален")
-                need_download = False
-            else:
-                logger.warning(f"{fname} устарел → обновляем")
-
-        if need_download:
-            logger.info(f"Скачиваем {fname}...")
-            await self.download_file(session, url, path)
-            # проверка хэша после скачивания
-            new_hash = self.sha256_file(path)
-            if new_hash != expected_hash:
-                logger.error(f"{fname} скачан с ошибкой: хэш не совпадает!")
-            else:
-                logger.success(f"{fname} обновлён и проверен")
+        
+    def get_manifest(self) -> Manifest:
+        with requests.Session() as session:
+            resp = session.get(settings.manifest_url)
+        return Manifest.model_validate_json(resp.content)
+        
+    def scan_mods(self) -> list[LocalMod]:
+        mods = []
+        
+        for sub_dir in [x for x in settings.mods_folder.iterdir() if x.is_dir()]:
+            if not (mod_info := sub_dir / "mod.info").exists():
+                continue
+            with mod_info.open("r", encoding="utf-8") as file:
+                info_dict = {}
+                for line in file.readlines():
+                    if "=" not in line:
+                        continue
+                    key, value = line.split("=", maxsplit=1)
+                    if key not in ("name", "id"):
+                        continue
+                    info_dict[key.strip()] = value.strip()
+            
+            self.sha256_dir(sub_dir)
+            
+            mod = LocalMod(**info_dict, path=sub_dir, mod_hash=...)
+            
+        mods.append(mod)
+    
+    @staticmethod
+    def sha256_dir(path: Path):
+        pass
+    
+    @staticmethod
+    def __sha256_file(file):
+        pass
+        
+    @staticmethod
+    def request_settings():
+        if not settings.manifest_url:
+            try:
+                settings.manifest_url = input("Manifest URL: ")
+            except ValueError:
+                raise ValueError("Invalid Manifest URL")
+                
+        if not settings.mods_folder:
+            settings.mods_folder = input("Path to mods: ")
+            if not os.path.exists(settings.mods_folder):
+                raise ValueError("Invalid path")
 
