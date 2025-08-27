@@ -9,7 +9,7 @@ from loguru import logger
 from pathlib import Path
 from pydantic import AnyUrl
 
-from src.models import Manifest, LocalMod, Mod
+from src.models import Manifest, LocalMod, RemoteMod
 from src.config_loader import settings, CONFIG_PATH
 
 
@@ -36,7 +36,7 @@ class Updater:
                     if "=" not in line:
                         continue
                     key, value = line.split("=", maxsplit=1)
-                    if key not in ("name", "id"):
+                    if key not in ("id",):
                         continue
                     info_dict[key.strip()] = value.strip()
             
@@ -48,9 +48,14 @@ class Updater:
         
         return mods
         
-    
+    def download_mod(session: requests.Session):
+        pass
         
-    def download_mods(self):
+    def func(self, remote_mods: list[RemoteMod], local_mods: list[LocalMod]):
+        for remote_mods
+        
+        
+    def sync_mods(self):
         pass
     
     @staticmethod

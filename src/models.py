@@ -6,15 +6,14 @@ from typing import Sequence
 class BaseMod(BaseModel):
     model_config = ConfigDict(validate_by_alias=True)
     
-    name: str
     mod_id: str = Field(validation_alias="id")
     mod_hash: str
 
 class LocalMod(BaseMod):
     path: Path
 
-class Mod(BaseMod):
+class RemoteMod(BaseMod):
     mod_url: AnyUrl
 
 class Manifest(BaseModel):
-    mods: Sequence[Mod]
+    mods: Sequence[RemoteMod]
