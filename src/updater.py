@@ -52,8 +52,14 @@ class Updater:
         pass
         
     def func(self, remote_mods: list[RemoteMod], local_mods: list[LocalMod]):
-        for remote_mods
+        for remote_mod in remote_mods:
+            for local_mod in local_mods:
+                self.check_mod(remote_mod, local_mod)
+                
         
+    def check_mod(self, remote_mod: RemoteMod, local_mod: LocalMod):
+        if remote_mod.mod_id != local_mod.mod_id:
+            return 
         
     def sync_mods(self):
         pass
