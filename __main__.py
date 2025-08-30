@@ -10,8 +10,5 @@ def run():
     updater.run()
 
 if __name__ == "__main__":
-    try:
-        run()
-    except ValueError as e:
-        logger.error(e)
-    input()
+    run()
+    input("READY")
