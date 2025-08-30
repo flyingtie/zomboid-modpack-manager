@@ -149,3 +149,4 @@ class Updater:
             settings.mods_folder = input("Path to mods: ")
             if not os.path.exists(settings.mods_folder):
                 raise ValueError("Invalid path")
+            
