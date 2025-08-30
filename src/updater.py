@@ -73,6 +73,7 @@ class Updater:
     @staticmethod
     def extract_mod(path: Path):
         shutil.unpack_archive(path, extract_dir=path.parent)
+        path.unlink()
     
     @staticmethod
     def download_file(url: AnyUrl, destination: Path, session: requests.Session) -> Path:
