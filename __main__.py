@@ -1,14 +1,18 @@
-from loguru import logger
+import logging
 
+from src.updater import update
 from src.config_loader import settings
-from src.updater import Updater
 
 
-updater = Updater()
+logging.basicConfig(logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 def run():
-    updater.run()
+    logger.info("Start updating")
+    update()
+    logger.info("Program finished")
 
 if __name__ == "__main__":
     run()
-    input("READY")
+    input()

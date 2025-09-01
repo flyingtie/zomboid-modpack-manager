@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, AnyUrl, Field
+from pydantic import BaseModel, ConfigDict, HttpUrl, Field
 from pathlib import Path
 from typing import List
 
@@ -14,7 +14,7 @@ class LocalMod(BaseMod):
     path: Path
 
 class RemoteMod(BaseMod):
-    mod_url: AnyUrl
+    mod_url: HttpUrl
 
 class Manifest(BaseModel):
     mods: List[RemoteMod]
