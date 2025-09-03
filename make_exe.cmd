@@ -1,0 +1,1 @@
+pyinstaller __main__.py -F --name "ZomboidModsUpdater" --console
