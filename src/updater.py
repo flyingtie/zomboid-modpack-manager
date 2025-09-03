@@ -5,7 +5,7 @@ import logging
 
 from pathlib import Path
 from pydantic import HttpUrl
-from typing import Generator, Optional, Union, Iterator
+from typing import Generator, Optional
 from email.message import EmailMessage
 
 from models import Manifest, LocalMod, RemoteMod
