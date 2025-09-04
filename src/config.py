@@ -12,7 +12,6 @@ class BaseSettings(BaseModel):
 class UpdaterSettings(BaseSettings):
     google_drive_token: SecretStr
 
-
 class UploaderSettings(BaseSettings):
     manifest_url: Optional[HttpUrl] = None
 
