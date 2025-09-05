@@ -8,11 +8,7 @@ class BaseSettings(BaseModel):
     
     mods_folder: Optional[Path] = None
 
-
 class UpdaterSettings(BaseSettings):
-    google_drive_token: SecretStr
-
-class UploaderSettings(BaseSettings):
     manifest_url: Optional[HttpUrl] = None
 
     

@@ -3,7 +3,7 @@ import json
 from platformdirs import user_data_dir
 from pathlib import Path
 
-from config import BaseSettings, UpdaterSettings, UploaderSettings
+from src.app.config import BaseSettings, UpdaterSettings
 
 
 DATA_DIR = Path(user_data_dir()) / "ZomboidModsUpdater"
