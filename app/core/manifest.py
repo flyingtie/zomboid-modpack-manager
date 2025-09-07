@@ -3,8 +3,8 @@ import logging
 from pydantic import HttpUrl
 from pathlib import Path
 
-from models import Manifest
-from utils import make_session
+from app.core.models import Manifest
+from app.core.utils import make_session
 
 
 logger = logging.getLogger(__name__)
@@ -15,5 +15,4 @@ def get_manifest(manifest_url: HttpUrl) -> Manifest:
     return Manifest.model_validate_json(resp.content)
 
 def generate_manifest(mods_folder: Path) -> Manifest:
-    
-
+    pass

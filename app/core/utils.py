@@ -11,7 +11,7 @@ from typing import Optional
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from models import LocalMod, RemoteMod
+from app.core.models import LocalMod, RemoteMod
 
 
 logger = logging.getLogger(__name__)
