@@ -1,4 +1,5 @@
 import checksumdir
+import xxhash
 import logging
 import shutil
 import requests
@@ -32,12 +33,12 @@ def scan_mods(path: Path) -> list[LocalMod]:
                     continue
                 info_dict[key.strip()] = value.strip()
         
-        mod_hash = checksumdir.dirhash(sub_dir, hashfunc="sha256")
+        mod_hash = hashdir(sub_dir)
         
         mod = LocalMod(**info_dict, path=sub_dir, mod_hash=mod_hash)
         
         mods.append(mod)
-        logger.info(f"{mod.mod_id} found")
+        logger.info(f"{mod.mod_id} loaded")
     
     return mods
 
@@ -97,3 +98,14 @@ def make_session() -> requests.Session:
     session.mount("https://", HTTPAdapter(max_retries=retries))
     
     return session
+
+def hashdir(path: Path) -> str:
+    hashvalues = []
+    
+    for root, _, files in path.walk():
+        for file in files:
+            hashvalues.append(checksumdir._filehash(root / file, xxhash.xxh3_64))
+    
+    hashvalues.sort()
+    
+    return checksumdir._reduce_hash(hashvalues, xxhash.xxh3_64)

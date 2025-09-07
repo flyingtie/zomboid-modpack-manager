@@ -4,7 +4,7 @@ from pydantic import HttpUrl
 from pathlib import Path
 
 from app.core.models import Manifest
-from app.core.utils import make_session
+from app.core.utils.utils import make_session
 
 
 logger = logging.getLogger(__name__)
