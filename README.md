@@ -1,3 +1,14 @@
-# Project Zomboid modpack updater
+# Project Zomboid modpack manager
 
-Automatically updates your local Project Zomboid modpack without manual checking or downloading.
+## Overview
+Загружает локальные моды на Google Drive и генерирует манифест (Если хотите загружать моды в другое место, то нужно будет написать свою логику хранилища) 
+
+На стороне игрока проверяет моды на наличие, сверяет контрольные суммы и докачивает нужные.
+
+Я не профи, поэтому буду рад обратной связи
+
+## Usage
+Скачать с последнего релиза .exe файл, открыть консоль и ввести:
+```
+$ ZomboidModpackManager.exe --help
+```

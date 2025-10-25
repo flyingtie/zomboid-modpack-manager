@@ -13,3 +13,7 @@ wheels/
 .venv
 
 *.env
+
+/client_secrets.json
+
+/.vscode

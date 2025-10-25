@@ -1,6 +1,6 @@
-from pydantic import BaseModel, ConfigDict, HttpUrl, Field
+from pydantic import BaseModel, ConfigDict, AnyUrl, Field
 from pathlib import Path
-from typing import List
+from typing import List, Literal, Optional
 
 
 class BaseMod(BaseModel):
@@ -12,9 +12,19 @@ class BaseMod(BaseModel):
 
 class LocalMod(BaseMod):
     path: Path
-
-class RemoteMod(BaseMod):
-    mod_url: HttpUrl
-
-class Manifest(BaseModel):
-    mods: List[RemoteMod]
+    
+class ExportMod(BaseMod):
+    url: AnyUrl
+    
+class GoogleDriveMod(BaseMod):
+    client_id: str
+    file_id: str
+    folder_id: Optional[str]
+    
+class ModpackManifest(BaseModel):
+    mods: List[ExportMod]
+        
+class LocalModsCache(BaseModel):
+    version: Literal["1.0"] = "1.0"
+    
+    mods: list[LocalMod]

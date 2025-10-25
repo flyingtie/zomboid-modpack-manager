@@ -1,1 +1,1 @@
-pyinstaller __main__.py -F --name "ZomboidModsUpdater" --console
+pyinstaller cli.py -F --name "ZomboidModpackManager" --console

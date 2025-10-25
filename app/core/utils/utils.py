@@ -1,8 +1,10 @@
+import json
 import checksumdir
 import xxhash
 import logging
 import shutil
 import requests
+import re
 
 from pathlib import Path
 from pydantic import HttpUrl
@@ -12,12 +14,18 @@ from typing import Optional
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from app.core.models import LocalMod, RemoteMod
+from app.core.models import LocalMod, ExportMod, LocalModsCache
 
 
 logger = logging.getLogger(__name__)
 
-def scan_mods(path: Path) -> list[LocalMod]:
+def get_enabled_mods(path: Path) -> list[str|None]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8") as file:
+        return re.findall(r"mod = (.+?),", file.read())
+        
+def get_local_mods(path: Path) -> list[LocalMod]:
     mods = []
     
     for sub_dir in [x for x in path.iterdir() if x.is_dir()]:
@@ -58,29 +66,28 @@ def download_file(url: HttpUrl, destination: Path, session: requests.Session) ->
         
         with open(path, "wb") as file:
             file.write(r.content)
-    logger.info(f"{filename} downloaded") 
     return path
 
 def delete_mod(path: Path):
     if path.exists():
         shutil.rmtree(path)
     
-def get_missing_mods(remote_mods: list[RemoteMod], local_mods: list[LocalMod]) -> Generator[tuple[RemoteMod, Optional[LocalMod]], None, None]:
-    for remote_mod in remote_mods:
+def get_missing_mods(remote_mods: list[ExportMod], local_mods: list[LocalMod]) -> Generator[tuple[ExportMod, Optional[LocalMod]], None, None]:
+    for export_mod in remote_mods:
         is_missing = True
         
         for local_mod in local_mods:
-            if remote_mod.mod_id != local_mod.mod_id:
+            if export_mod.mod_id != local_mod.mod_id:
                 continue
-            if remote_mod.mod_hash == local_mod.mod_hash: 
+            if export_mod.mod_hash == local_mod.mod_hash: 
                 is_missing = False
                 break
             is_missing = False
-            yield remote_mod, local_mod
+            yield export_mod, local_mod
             break
         
         if is_missing:
-            yield remote_mod, None
+            yield export_mod, None
 
 def make_session() -> requests.Session:
     session = requests.Session()
@@ -109,3 +116,20 @@ def hashdir(path: Path) -> str:
     hashvalues.sort()
     
     return checksumdir._reduce_hash(hashvalues, xxhash.xxh3_64)
+
+def get_cached_local_mods(mods_folder: Path) -> list[LocalMod] | None:
+    cache_path = mods_folder / "cache.json"
+    
+    if not cache_path.exists():
+        return None
+    
+    with cache_path.open("rb") as f:
+        cache = LocalModsCache.model_validate(json.load(f))
+    
+    return cache.mods
+
+def cache_local_mods(mods_folder: Path, local_mods: list[LocalMod]):
+    cache_path = mods_folder / "cache.json"
+    
+    with cache_path.open("w", encoding="utf-8") as f:
+        f.write(LocalModsCache(mods=local_mods).model_dump_json())
