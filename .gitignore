@@ -14,6 +14,7 @@ wheels/
 
 *.env
 
-/client_secrets.json
-
+client_secrets.json
+creds.json
 /.vscode
+/test.py

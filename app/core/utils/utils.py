@@ -9,8 +9,6 @@ import re
 from pathlib import Path
 from pydantic import HttpUrl
 from email.message import EmailMessage
-from collections.abc import Generator
-from typing import Optional
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
@@ -19,21 +17,28 @@ from app.core.models import LocalMod, ExportMod, LocalModsCache
 
 logger = logging.getLogger(__name__)
 
+
 def get_enabled_mods(path: Path) -> list[str|None]:
-    if not path.exists():
+    file_path = path / "default.txt"
+    
+    if not file_path.exists():
         return []
-    with path.open("r", encoding="utf-8") as file:
+    with file_path.open("r", encoding="utf-8") as file:
         return re.findall(r"mod = (.+?),", file.read())
+  
         
-def get_local_mods(path: Path) -> list[LocalMod]:
+def find_mods(path: Path, only_enabled: bool = True) -> list[LocalMod]:
     mods = []
+    
+    if only_enabled:
+        enabled_mods = get_enabled_mods(path)
     
     for sub_dir in [x for x in path.iterdir() if x.is_dir()]:
         if not (mod_info := sub_dir / "mod.info").exists():
             continue
-        with mod_info.open("r", encoding="utf-8") as file:
+        with mod_info.open("r", encoding="utf-8") as f:
             info_dict = {}
-            for line in file.readlines():
+            for line in f.readlines():
                 if "=" not in line:
                     continue
                 key, value = line.split("=", maxsplit=1)
@@ -41,18 +46,44 @@ def get_local_mods(path: Path) -> list[LocalMod]:
                     continue
                 info_dict[key.strip()] = value.strip()
         
+        if only_enabled:
+            if info_dict["id"] not in enabled_mods:
+                continue
+            
         mod_hash = hashdir(sub_dir)
         
         mod = LocalMod(**info_dict, path=sub_dir, mod_hash=mod_hash)
         
         mods.append(mod)
+        
         logger.info(f"{mod.mod_id} loaded")
     
     return mods
 
-def extract_mod(path: Path):
+
+def extract_archive(path: Path):
     shutil.unpack_archive(path, extract_dir=path.parent)
-    path.unlink()
+    
+    delete_file(path)
+   
+    
+def make_archive(path: Path) -> Path:
+    """Сreates archive
+
+    Args:
+        path (Path)
+
+    Returns:
+        str: Path to archive
+    """
+    
+    return Path(shutil.make_archive(
+        base_name=path, 
+        format="zip", 
+        root_dir=path.parent, 
+        base_dir=path
+    ))
+
 
 def download_file(url: HttpUrl, destination: Path, session: requests.Session) -> Path:
     with session.get(url, stream=True) as r:
@@ -68,26 +99,15 @@ def download_file(url: HttpUrl, destination: Path, session: requests.Session) ->
             file.write(r.content)
     return path
 
-def delete_mod(path: Path):
+
+def delete_dir(path: Path):
     if path.exists():
         shutil.rmtree(path)
-    
-def get_missing_mods(remote_mods: list[ExportMod], local_mods: list[LocalMod]) -> Generator[tuple[ExportMod, Optional[LocalMod]], None, None]:
-    for export_mod in remote_mods:
-        is_missing = True
+   
         
-        for local_mod in local_mods:
-            if export_mod.mod_id != local_mod.mod_id:
-                continue
-            if export_mod.mod_hash == local_mod.mod_hash: 
-                is_missing = False
-                break
-            is_missing = False
-            yield export_mod, local_mod
-            break
-        
-        if is_missing:
-            yield export_mod, None
+def delete_file(path: Path):
+    path.unlink(missing_ok=True)
+
 
 def make_session() -> requests.Session:
     session = requests.Session()
@@ -106,6 +126,7 @@ def make_session() -> requests.Session:
     
     return session
 
+
 def hashdir(path: Path) -> str:
     hashvalues = []
     
@@ -116,6 +137,7 @@ def hashdir(path: Path) -> str:
     hashvalues.sort()
     
     return checksumdir._reduce_hash(hashvalues, xxhash.xxh3_64)
+
 
 def get_cached_local_mods(mods_folder: Path) -> list[LocalMod] | None:
     cache_path = mods_folder / "cache.json"
@@ -128,8 +150,12 @@ def get_cached_local_mods(mods_folder: Path) -> list[LocalMod] | None:
     
     return cache.mods
 
+
 def cache_local_mods(mods_folder: Path, local_mods: list[LocalMod]):
     cache_path = mods_folder / "cache.json"
     
     with cache_path.open("w", encoding="utf-8") as f:
         f.write(LocalModsCache(mods=local_mods).model_dump_json())
+        
+# TODO: 
+# Разделить на модули
