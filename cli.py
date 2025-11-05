@@ -1,4 +1,5 @@
 import click
+import logging
 import questionary
 
 from pydantic import HttpUrl
@@ -9,6 +10,8 @@ from click_option_group import optgroup, MutuallyExclusiveOptionGroup
 from app.main import update_modpack, upload_modpack, export_modpack
 from app.loader import load_cli_cache, save_cli_cache
 
+
+logging.basicConfig(level=logging.INFO)
 
 cli_cache = load_cli_cache()
 
@@ -62,12 +65,12 @@ def update(mods_folder: Path, manifest_url: HttpUrl, manifest_path: Path):
         if choice == "url":
             manifest_url = questionary.text(
                 "Enter manifest url:", 
-                default=empty_str_if_none(cli_cache.modpack_manifest_url)
+                default=empty_str_if_none(str(cli_cache.modpack_manifest_url))
             ).ask()
         elif choice == "path":
             manifest_path = Path(questionary.path(
                 "Enter manifest path:", 
-                default=empty_str_if_none(cli_cache.modpack_manifest_path)
+                default=empty_str_if_none(str(cli_cache.modpack_manifest_path))
             ).ask())
         
     cli_cache.mods_folder = mods_folder

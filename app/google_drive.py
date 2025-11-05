@@ -1,10 +1,9 @@
-import enum
 import click
-import uuid
-import google.auth
+import logging
 
 from pydrive2.auth import GoogleAuth, RefreshError, AuthenticationError, InvalidCredentialsError
 from pydrive2.drive import GoogleDrive
+from pydrive2.files import ApiRequestError
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from pathlib import Path
@@ -13,6 +12,9 @@ from typing import Optional
 
 from app.loader import GOOGLE_CREDS_PATH
 from app.models import GoogleDriveFileInfo
+
+
+logger = logging.getLogger(__name__)
 
 
 def auth(client_secrets_path: Path = None) -> GoogleAuth:
@@ -54,7 +56,10 @@ def delete_googledrive_file(file_id: str, auth: GoogleAuth):
     
     file = drive.CreateFile(metadata=metadata)
     
-    file.Delete()
+    try:
+        file.Delete()
+    except ApiRequestError as ex:
+        logger.error(ex)
 
 
 def upload_file(path: Path, auth: GoogleAuth, folder_id: Optional[str] = None) -> GoogleDriveFileInfo:

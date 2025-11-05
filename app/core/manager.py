@@ -7,7 +7,7 @@ def get_missing_mods(remote_mods: list[ExportMod], local_mods: list[LocalMod]) -
         is_missing = True
         
         for local_mod in local_mods:
-            if export_mod.mod_id != local_mod.mod_id:
+            if export_mod.id != local_mod.id:
                 continue
             if export_mod.mod_hash == local_mod.mod_hash: 
                 is_missing = False

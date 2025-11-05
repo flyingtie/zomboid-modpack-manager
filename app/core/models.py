@@ -4,10 +4,8 @@ from typing import List, Literal, Optional
 
 
 class BaseMod(BaseModel):
-    model_config = ConfigDict(validate_by_alias=True)
-    
     name: str
-    mod_id: str = Field(validation_alias="id")
+    id: str
     mod_hash: str
 
 

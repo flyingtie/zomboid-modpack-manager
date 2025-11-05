@@ -34,12 +34,16 @@ class ManifestSourceNotAssigned(Exception):
 def export_modpack(dest: Path):
     uploaded_mods = load_uploaded_mods()
     
+    if not uploaded_mods:
+        logger.info("Nothing to export")
+        return
+    
     export_mods = list()
     for mod in uploaded_mods:
         export_mods.append(
             ExportMod(
                 name=mod.name,
-                mod_id=mod.mod_id,
+                id=mod.id,
                 mod_hash=mod.mod_hash,
                 url=mod.file_info.url
             )
@@ -48,7 +52,7 @@ def export_modpack(dest: Path):
     path = dest / f"export_{time.time()}.json"
     
     with path.open("w", encoding="utf-8") as f:
-        f.write(ModpackManifest(export_mods).model_dump_json(indent=4))
+        f.write(ModpackManifest(mods=export_mods).model_dump_json(indent=4))
     
 
 def get_modpack_manifest(url: AnyUrl) -> ModpackManifest:
@@ -84,15 +88,15 @@ def update_modpack(mods_folder: Path, manifest_url: AnyUrl = None, manifest_path
     with make_session() as session:
         for export_mod, local_mod in get_missing_mods(manifest.mods, local_mods):
             if local_mod:
-                logger.info(f"{local_mod.mod_id} is bad")
+                logger.info(f"{local_mod.id} is bad")
                 delete_dir(local_mod.path)
             else:
-                logger.info(f"{export_mod.mod_id} is missing")
+                logger.info(f"{export_mod.id} is missing")
                 
             mod_path = download_file(export_mod.url, mods_folder, session)
             extract_archive(mod_path)
             
-            logger.info(f"{export_mod.mod_id} downloaded")            
+            logger.info(f"{export_mod.id} downloaded")            
 
 
 def upload_modpack(mods_folder: Path, client_secrets_path: Path, folder_id: str = None):
@@ -103,52 +107,49 @@ def upload_modpack(mods_folder: Path, client_secrets_path: Path, folder_id: str 
         
     gauth = google_drive.auth(client_secrets_path)
     
-    with save_uploaded_mods() as save:
+    for mod in found_mods:
+        upload_mod = True
         
-        for mod in found_mods:
-            upload_mod = True
+        for upld_mod in uploaded_mods: 
+            if mod.id != upld_mod.id:
+                continue
             
-            for upld_mod in uploaded_mods: 
-                if mod.mod_id != upld_mod.mod_id:
-                    continue
+            if mod.mod_hash != upld_mod.mod_hash:
+                google_drive.delete_googledrive_file(upld_mod.file_info.fileid, gauth)
                 
-                if mod.mod_hash != upld_mod.mod_hash:
-                    google_drive.delete_googledrive_file(upld_mod.file_info.fileid, gauth)
-                    
-                    uploaded_mods.remove(upld_mod)
-                    
-                    save(uploaded_mods)
-                    
-                    break
+                uploaded_mods.remove(upld_mod)
                 
-                upload_mod = False
+                save_uploaded_mods(uploaded_mods)
                 
                 break
             
-            if not upload_mod:
-                continue
+            upload_mod = False
             
-            path_to_archive = make_archive(mod.path)
-            
-            file_info = google_drive.upload_file(
-                path=path_to_archive, 
-                auth=gauth, 
-                folder_id=folder_id
-            )
-            
-            delete_file(path_to_archive)
-            
-            uploaded_mod = GoogleDriveMod(
-                name=mod.name,
-                mod_id=mod.mod_id,
-                mod_hash=mod.mod_hash,
-                file_info=file_info
-            )
-            
-            uploaded_mods.append(uploaded_mod)
-            
-            save(uploaded_mods)
-
+            break
+        
+        if not upload_mod:
+            continue
+        
+        path_to_archive = make_archive(mod.path)
+        
+        file_info = google_drive.upload_file(
+            path=path_to_archive, 
+            auth=gauth, 
+            folder_id=folder_id
+        )
+        
+        delete_file(path_to_archive)
+        
+        uploaded_mod = GoogleDriveMod(
+            name=mod.name,
+            id=mod.id,
+            mod_hash=mod.mod_hash,
+            file_info=file_info
+        )
+        
+        uploaded_mods.append(uploaded_mod)
+        
+        save_uploaded_mods(uploaded_mods)
 
 
 

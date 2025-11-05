@@ -56,7 +56,7 @@ def find_mods(path: Path, only_enabled: bool = True) -> list[LocalMod]:
         
         mods.append(mod)
         
-        logger.info(f"{mod.mod_id} loaded")
+        logger.info(f"{mod.id} loaded")
     
     return mods
 
@@ -77,12 +77,14 @@ def make_archive(path: Path) -> Path:
         str: Path to archive
     """
     
-    return Path(shutil.make_archive(
-        base_name=path, 
-        format="zip", 
-        root_dir=path.parent, 
-        base_dir=path
-    ))
+    return Path(
+        shutil.make_archive(
+            base_name=path, 
+            format="zip", 
+            root_dir=path.parent, 
+            base_dir=path.name
+        )
+    )
 
 
 def download_file(url: HttpUrl, destination: Path, session: requests.Session) -> Path:
