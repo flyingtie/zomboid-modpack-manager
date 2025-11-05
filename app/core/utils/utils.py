@@ -12,7 +12,7 @@ from email.message import EmailMessage
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from app.core.models import LocalMod, ExportMod, LocalModsCache
+from app.core.models import LocalMod, ExportMod
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ def find_mods(path: Path, only_enabled: bool = True) -> list[LocalMod]:
         
         mods.append(mod)
         
-        logger.info(f"{mod.id} loaded")
+        logger.info(f"{mod.id} found")
     
     return mods
 
@@ -139,25 +139,6 @@ def hashdir(path: Path) -> str:
     hashvalues.sort()
     
     return checksumdir._reduce_hash(hashvalues, xxhash.xxh3_64)
-
-
-def get_cached_local_mods(mods_folder: Path) -> list[LocalMod] | None:
-    cache_path = mods_folder / "cache.json"
-    
-    if not cache_path.exists():
-        return None
-    
-    with cache_path.open("rb") as f:
-        cache = LocalModsCache.model_validate(json.load(f))
-    
-    return cache.mods
-
-
-def cache_local_mods(mods_folder: Path, local_mods: list[LocalMod]):
-    cache_path = mods_folder / "cache.json"
-    
-    with cache_path.open("w", encoding="utf-8") as f:
-        f.write(LocalModsCache(mods=local_mods).model_dump_json())
         
 # TODO: 
 # Разделить на модули

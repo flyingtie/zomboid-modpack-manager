@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, AnyUrl, Field
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import List
 
 
 class BaseMod(BaseModel):
@@ -19,9 +19,3 @@ class ExportMod(BaseMod):
 
 class ModpackManifest(BaseModel):
     mods: List[ExportMod]
-
-        
-class LocalModsCache(BaseModel):
-    version: Literal["1.0"] = "1.0"
-    
-    mods: list[LocalMod]

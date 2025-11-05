@@ -4,7 +4,7 @@ from pydantic import HttpUrl, BaseModel, ConfigDict, SecretStr
 from pathlib import Path
 from typing import Optional
 
-from app.core.models import BaseMod
+from app.core.models import BaseMod, LocalMod
 
 
 class CliCache(BaseModel):
@@ -31,4 +31,8 @@ class GoogleDriveMod(BaseMod):
     
 class UploadCache(BaseModel):
     mods: list[GoogleDriveMod]
+    
+    
+class LocalModsCache(BaseModel):
+    mods: list[LocalMod]
     

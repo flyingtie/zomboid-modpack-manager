@@ -8,7 +8,7 @@ from pathlib import Path
 from contextlib import contextmanager
 from json import JSONDecodeError
 
-from app.models import UploadCache, CliCache, GoogleDriveMod
+from app.models import UploadCache, CliCache, GoogleDriveMod, LocalModsCache, LocalMod
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 DATA_PATH = Path(user_data_dir()) / "ZomboidModpackManager"
 CLI_CACHE_PATH = DATA_PATH / "clicache.json"
+MODS_CACHE_PATH = DATA_PATH / "cache.json"
 UPLOAD_CACHE_PATH = DATA_PATH / "uploadcache.json"
 GOOGLE_CREDS_PATH = DATA_PATH / "creds.json"
 
@@ -57,3 +58,22 @@ def load_uploaded_mods() -> list[GoogleDriveMod] | None:
         except ValidationError as ex:
             logger.warning(ex)
     return None
+
+
+def load_cached_local_mods(mods_folder: Path) -> list[LocalMod] | None:
+    cache_path = mods_folder / "cache.json"
+    
+    if not cache_path.exists():
+        return None
+    
+    with cache_path.open("rb") as f:
+        cache = LocalModsCache.model_validate(json.load(f))
+    
+    return cache.mods
+
+
+def save_local_mods_cache(mods_folder: Path, local_mods: list[LocalMod]):
+    cache_path = mods_folder / "cache.json"
+    
+    with cache_path.open("w", encoding="utf-8") as f:
+        f.write(LocalModsCache(mods=local_mods).model_dump_json())

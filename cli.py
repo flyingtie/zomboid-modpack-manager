@@ -114,11 +114,15 @@ def upload(mods_folder: Path, client_secrets_path: Path, folder_id: Optional[str
     help="Export file destination"
 )
 def export(dest: Path):
+    """Creates export manifest"""
+    
     export_modpack(dest)
 
 
 if __name__ == "__main__":
-    cli()
-    
+    try:
+        cli()
+    except Exception as ex:
+        click.echo(f"Something went wrong: {ex}")
 # TODO:
 # Добавить прогресс бар
