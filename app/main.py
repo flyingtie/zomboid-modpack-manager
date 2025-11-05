@@ -81,14 +81,14 @@ def update_modpack(mods_folder: Path, manifest_url: AnyUrl = None, manifest_path
         raise ManifestSourceNotAssigned
     
     do_scan = True
-    if local_mods := load_cached_local_mods(mods_folder):
+    if local_mods := load_cached_local_mods():
         if not questionary.confirm("do re-scan?").ask():
             do_scan = False
     if do_scan:
         logger.info("Parsing mods")
         
         local_mods = find_mods(mods_folder, only_enabled=True)
-        save_local_mods_cache(mods_folder, local_mods)
+        save_local_mods_cache(local_mods)
 
     with make_session() as session:
         for export_mod, local_mod in get_missing_mods(manifest.mods, local_mods):

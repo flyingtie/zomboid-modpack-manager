@@ -60,20 +60,16 @@ def load_uploaded_mods() -> list[GoogleDriveMod] | None:
     return None
 
 
-def load_cached_local_mods(mods_folder: Path) -> list[LocalMod] | None:
-    cache_path = mods_folder / "cache.json"
-    
-    if not cache_path.exists():
+def load_cached_local_mods() -> list[LocalMod] | None:
+    if not MODS_CACHE_PATH.exists():
         return None
     
-    with cache_path.open("rb") as f:
+    with MODS_CACHE_PATH.open("rb") as f:
         cache = LocalModsCache.model_validate(json.load(f))
     
     return cache.mods
 
 
-def save_local_mods_cache(mods_folder: Path, local_mods: list[LocalMod]):
-    cache_path = mods_folder / "cache.json"
-    
-    with cache_path.open("w", encoding="utf-8") as f:
+def save_local_mods_cache(local_mods: list[LocalMod]):
+    with MODS_CACHE_PATH.open("w", encoding="utf-8") as f:
         f.write(LocalModsCache(mods=local_mods).model_dump_json())
